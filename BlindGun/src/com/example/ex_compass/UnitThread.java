@@ -14,7 +14,8 @@ public class UnitThread extends Thread {
 	 * 
 	 * @see java.lang.Thread#destroy()
 	 */
-
+ //변동사항
+	
 	private final static int LIVE = 1;
 	private final static int DAMEGED = 2;
 	private final static int DEAD = 3;
