@@ -37,18 +37,18 @@ public class Enermy {
 		switch (id) {
 		case 1:
 			name = "Human";
-			speed = 1;
+			speed = 5;
 			hp = 1;
 			rand = new Random(System.currentTimeMillis()); // seed값을 배정하여 생성
-//			enm_degree = Math.abs(rand.nextInt(359)); // 0~359 ,
+			enm_degree = Math.abs(rand.nextInt(359)); // 0~359 ,
 														// Math.abs(rand.nextInt(9)+1)
 														// //1~10
 			
-			enm_degree =100;
+
 			move_bgm_resid = R.raw.foot;
 			dmg_sound_resid = R.raw.enm_dmg;
 			dead_sound_resid = R.raw.enm_dmg;
-			range=100;
+			range=1000;
 			break;
 
 		case 2:// 2.개 (2, 10, 2, ran, 왈왈, 으악)
@@ -62,7 +62,7 @@ public class Enermy {
 			move_bgm_resid = R.raw.foot;
 			dmg_sound_resid = R.raw.enm_dmg;
 			dead_sound_resid = R.raw.enm_dmg;
-			range=80;
+			range=800;
 			break;
 
 		case 3: // 3.쇠사슬병사(3, 6, 3, ran, 쓰르릉, 으악)
@@ -76,7 +76,7 @@ public class Enermy {
 			move_bgm_resid = R.raw.foot;
 			dmg_sound_resid = R.raw.enm_dmg;
 			dead_sound_resid = R.raw.enm_dmg;
-			range=70;
+			range=700;
 			break;
 
 		case 4: // 4.전기톱병사(4, 8, 5, ran, 덜덜덜, 으악)
@@ -90,7 +90,7 @@ public class Enermy {
 			move_bgm_resid = R.raw.foot;
 			dmg_sound_resid = R.raw.enm_dmg;
 			dead_sound_resid = R.raw.enm_dmg;
-			range=60;
+			range=600;
 			break;
 
 		default:

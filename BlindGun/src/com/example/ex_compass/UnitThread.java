@@ -9,19 +9,15 @@ import android.widget.*;
 
 public class UnitThread extends Thread {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see java.lang.Thread#destroy()
-	 */
- //변동사항
-	
 	private final static int LIVE = 1;
 	private final static int DAMEGED = 2;
 	private final static int DEAD = 3;
 	private final static int FINISH = 4;
-	private final static float EFFECTIVE_DEGREE = 10;
-	private final static float EFFECTIVE_DEGREE_PERCENT = (float) (0.5 * (90 - EFFECTIVE_DEGREE) / 90);
+	private final static float EFFECTIVE_DEGREE = 10; // 유효 각도 +-10도 사이는 정조준으로
+														// 인정.
+	private final static float EFFECTIVE_DEGREE_PERCENT = (float) (0.5 * (90 - EFFECTIVE_DEGREE) / 90);// 유효
+																										// 각도의
+																										// 퍼센테이지
 
 	// 스레드 관련.
 	private Thread timer_thread; // 효과음타이머
@@ -34,9 +30,13 @@ public class UnitThread extends Thread {
 	private MediaPlayer move_bgm;// 발자국소리,
 	private int step;
 
-	// stereo 볼륨
-	private float left_frequence;// ************실시간 체크
-	private float right_frequence;// ************실시간 체크
+	// stereo moving 볼륨
+	private float left_frequence;// 실시간 체크
+	private float right_frequence;//실시간 체크
+	
+	// stereo no moving 볼륨
+	private float left_F_orginal;
+	private float right_F_orginal;
 
 	// angle
 	private float user_degree;
@@ -62,6 +62,7 @@ public class UnitThread extends Thread {
 	public void destroy() {
 		// TODO Auto-generated method stub
 		super.destroy();
+		move_bgm.stop();
 
 	}
 
@@ -87,10 +88,11 @@ public class UnitThread extends Thread {
 		move_bgm.setLooping(true);
 	}
 
-	// 유닛마다의 소리의 상대적 위치를 바꾸어줌
+	// 유닛마다, 소리의 상대적 위치를 적용시킴
 	private void modified_sound() {
 		move_bgm.setVolume(this.left_frequence, this.right_frequence);
 	}
+
 	// 다가올때마다 소리커지는기능+ 스트레오기능
 	private void set_moving_stereo(float lf, float rf) {
 
@@ -101,7 +103,9 @@ public class UnitThread extends Thread {
 
 		if (moving_left_percent <= lf && (moving_right_percent <= rf)) {
 
+			//0.1초당한발자국씩 가기.
 			++step;
+			
 			this.left_frequence = (float) (lf * (step) * 0.1
 					* (float) enermy.getSpeed() / enermy.getRange());
 			this.right_frequence = (float) (rf * (step) * 0.1
@@ -120,11 +124,7 @@ public class UnitThread extends Thread {
 		return;
 	}
 
-	private void set__stereo(float lf, float rf) {
-		this.left_frequence = lf;
-		this.right_frequence = rf;
-		return;
-	}
+	
 
 	private void init_soundpool() {
 		// TODO Auto-generated method stub
@@ -187,10 +187,16 @@ public class UnitThread extends Thread {
 			lf = 1.0f - rf;
 
 		}
+		set_stereo(lf,rf);
 		set_moving_stereo(lf, rf);
 
 		return;
+	}
 
+	private void set_stereo(float lf, float rf) {
+		this.left_F_orginal= lf;
+		this.right_F_orginal = rf;
+		
 	}
 
 	@Override
@@ -200,11 +206,11 @@ public class UnitThread extends Thread {
 
 			if (state == 1) {// 살아있을때, 다가오는소리내기(o점점커지게하기, o위치선정)
 				if (!move_bgm.isPlaying()) { // 시작시 한번만 재생.
-					Log.i("check","in state1");
+					
 					move_bgm.start();
 				}
 			} else if (state == 2) {// 한대 맞았을때
-				Log.i("check","in state2");
+				Log.i("check", "in state2");
 				move_bgm.pause();
 
 				// 체력 -1
@@ -212,17 +218,18 @@ public class UnitThread extends Thread {
 
 				// 죽엇는지 확인
 				if (enermy.checkDead()) {
-					Log.i("check","in state2, checkDead");
+					Log.i("check", "in state2, checkDead");
 					state = 3;
 					continue;
 
-				} else {// 맞았는데도 살아있는경우,1초 대기후 다시 움직임.
+				} else {// 맞았는데도 살아있는경우,2초 대기후 다시 움직임.
 					try {
 						mSoundManager.playSound(1, left_frequence,
 								right_frequence);
 						timer_thread.sleep(2000);
 
-						move_bgm.start();
+						
+						state = 1;
 
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
@@ -231,20 +238,15 @@ public class UnitThread extends Thread {
 				}
 
 			} else if (state == 3) { // 죽었을때
-				Log.i("check","in state3");
+				Log.i("check", "in state3");
 				mSoundManager.playSound(2, left_frequence, right_frequence);
 
-				try {
-					timer_thread.sleep(3000); // 효과음이 다나고 스레드 없앰.
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				
 				timer_thread = null;
 				state = FINISH;
 
 			}
-			
+
 			else {
 				Log.i("check", "UnitThread else오류");
 
@@ -266,11 +268,11 @@ public class UnitThread extends Thread {
 
 	// 내가 유효범위내에 쏜경우
 	public void check_bullet() {
-		Log.i("check","in check_bullet");
+		Log.i("check", "in check_bullet");
 		// TODO Auto-generated method stub
 		// 왼쪽소리도 0.5*80/90 이상, 오른쪽도 0.5*80/90이상 소리가 균형잡히게나는경우 -> 정면이란 말과동일
-		if ((left_frequence > EFFECTIVE_DEGREE_PERCENT)
-				&& (right_frequence > EFFECTIVE_DEGREE_PERCENT)) {
+		if ((left_F_orginal > EFFECTIVE_DEGREE_PERCENT)
+				&& (right_F_orginal > EFFECTIVE_DEGREE_PERCENT)) {
 			state = 2; // 맞은 상태 전환
 			enermy.downHp();
 		}
